@@ -1,10 +1,10 @@
+import os
 from datetime import datetime, timedelta
 
+from airflow import Dataset
 from airflow.decorators import dag
 from airflow.utils.task_group import TaskGroup
 from airflow.operators.empty import EmptyOperator
-
-from airflow import Dataset
 from airflow.providers.google.cloud.transfers.local_to_gcs import LocalFilesystemToGCSOperator
 
 from astro import sql as aql
@@ -17,6 +17,10 @@ default_args = {
     "retries": 1,
     "retry_delay": 0
 }
+
+#INPUT_PATH = os.environ.get("INPUT_PATH")
+
+INPUT_PATH = "gs://olist-dw/raw"
 
 
 dbt_dataset = Dataset("dbt_load")
@@ -57,7 +61,7 @@ def load_local_files():
 
         load_local_customers = aql.load_file(
             task_id="load_local_customers",
-            input_file=File("gs://olist-dw/raw/olist_customers_dataset.csv", conn_id="gcp_conn", filetype=FileType.CSV),
+            input_file=File("f{INPUT_PATH}/olist_customers_dataset.csv", conn_id="gcp_conn", filetype=FileType.CSV),
             output_table=Table(metadata=Metadata(schema=schema), name="customers", conn_id="gcp_conn")
         )
 
@@ -68,7 +72,7 @@ def load_local_files():
 
         load_local_orders = aql.load_file(
             task_id="load_local_orders",
-            input_file=File("gs://olist-dw/raw/olist_orders_dataset.csv", conn_id="gcp_conn", filetype=FileType.CSV),
+            input_file=File("f{INPUT_PATH}/olist_orders_dataset.csv", conn_id="gcp_conn", filetype=FileType.CSV),
             output_table=Table(metadata=Metadata(schema=schema), name="orders", conn_id="gcp_conn")
         )
 
@@ -78,7 +82,7 @@ def load_local_files():
 
         load_local_orders_payments = aql.load_file(
             task_id="load_local_orders_payments",
-            input_file=File("gs://olist-dw/raw/olist_order_payments_dataset.csv", conn_id="gcp_conn", filetype=FileType.CSV),
+            input_file=File("f{INPUT_PATH}/olist_order_payments_dataset.csv", conn_id="gcp_conn", filetype=FileType.CSV),
             output_table=Table(metadata=Metadata(schema=schema), name="payments", conn_id="gcp_conn")
         )
 
@@ -88,7 +92,7 @@ def load_local_files():
 
         load_local_orders_items = aql.load_file(
             task_id="load_local_orders_items",
-            input_file=File("gs://olist-dw/raw/olist_order_items_dataset.csv", conn_id="gcp_conn", filetype=FileType.CSV),
+            input_file=File("f{INPUT_PATH}/olist_order_items_dataset.csv", conn_id="gcp_conn", filetype=FileType.CSV),
             output_table=Table(metadata=Metadata(schema=schema), name="order_items", conn_id="gcp_conn")
         )
 
@@ -98,7 +102,7 @@ def load_local_files():
 
         load_local_orders_reviews = aql.load_file(
             task_id="load_local_orders_reviews",
-            input_file=File("gs://olist-dw/raw/olist_order_reviews_dataset.csv", conn_id="gcp_conn", filetype=FileType.CSV),
+            input_file=File("f{INPUT_PATH}/olist_order_reviews_dataset.csv", conn_id="gcp_conn", filetype=FileType.CSV),
             output_table=Table(metadata=Metadata(schema=schema), name="reviews", conn_id="gcp_conn")
         )
 
@@ -108,7 +112,7 @@ def load_local_files():
 
         load_local_products = aql.load_file(
             task_id="load_local_products",
-            input_file=File("gs://olist-dw/raw/olist_products_dataset.csv", conn_id="gcp_conn", filetype=FileType.CSV),
+            input_file=File("f{INPUT_PATH}/olist_products_dataset.csv", conn_id="gcp_conn", filetype=FileType.CSV),
             output_table=Table(metadata=Metadata(schema=schema), name="products", conn_id="gcp_conn")
         )
 
@@ -118,7 +122,7 @@ def load_local_files():
 
         load_local_sellers = aql.load_file(
             task_id="load_local_sellers",
-            input_file=File("gs://olist-dw/raw/olist_sellers_dataset.csv", conn_id="gcp_conn", filetype=FileType.CSV),
+            input_file=File("f{INPUT_PATH}/olist_sellers_dataset.csv", conn_id="gcp_conn", filetype=FileType.CSV),
             output_table=Table(metadata=Metadata(schema=schema), name="sellers", conn_id="gcp_conn")
         )
 
