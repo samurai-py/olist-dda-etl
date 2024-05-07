@@ -1,11 +1,13 @@
-import os
 from datetime import datetime, timedelta
 
-from airflow import Dataset
 from airflow.decorators import dag
 from airflow.utils.task_group import TaskGroup
 from airflow.operators.empty import EmptyOperator
+
+from airflow import Dataset
+from airflow.contrib.operators.gcs_delete_operator import GoogleCloudStorageDeleteOperator
 from airflow.providers.google.cloud.transfers.local_to_gcs import LocalFilesystemToGCSOperator
+
 
 from astro import sql as aql
 from astro.files import File
@@ -17,14 +19,6 @@ default_args = {
     "retries": 1,
     "retry_delay": 0
 }
-
-#INPUT_PATH = os.environ.get("INPUT_PATH")
-
-INPUT_PATH = "gs://olist-dw/raw"
-
-
-dbt_dataset = Dataset("dbt_load")
-
 
 # Define the basic parameters of the DAG, like schedule and start_date
 @dag(
@@ -47,7 +41,7 @@ def load_local_files():
 
         local_csv_to_gcs = LocalFilesystemToGCSOperator(
         task_id='upload_csv_to_gcs',
-        src='include/raw_data/*.csv',
+        src='include/raw_data/csv/*.csv',
         dst='raw/',
         bucket='olist-dw',
         gcp_conn_id='gcp_conn',
@@ -57,84 +51,85 @@ def load_local_files():
     local_csv_to_gcs
     
 
-    with TaskGroup(group_id="Customers") as customers_task_group:
+    with TaskGroup(group_id="Load_to_bq") as load_to_bq_task_group:
 
         load_local_customers = aql.load_file(
             task_id="load_local_customers",
-            input_file=File("f{INPUT_PATH}/olist_customers_dataset.csv", conn_id="gcp_conn", filetype=FileType.CSV),
+            input_file=File("gs://olist-dw/raw/olist_customers_dataset.csv", conn_id="gcp_conn", filetype=FileType.CSV),
             output_table=Table(metadata=Metadata(schema=schema), name="customers", conn_id="gcp_conn")
         )
 
-    load_local_customers
-
-
-    with TaskGroup(group_id="Orders") as orders_task_group:
+        load_local_customers
 
         load_local_orders = aql.load_file(
             task_id="load_local_orders",
-            input_file=File("f{INPUT_PATH}/olist_orders_dataset.csv", conn_id="gcp_conn", filetype=FileType.CSV),
+            input_file=File("gs://olist-dw/raw/olist_orders_dataset.csv", conn_id="gcp_conn", filetype=FileType.CSV),
             output_table=Table(metadata=Metadata(schema=schema), name="orders", conn_id="gcp_conn")
         )
 
-    load_local_orders
-
-    with TaskGroup(group_id="Orders_payments") as orders_payments_task_group:
+        load_local_orders
 
         load_local_orders_payments = aql.load_file(
             task_id="load_local_orders_payments",
-            input_file=File("f{INPUT_PATH}/olist_order_payments_dataset.csv", conn_id="gcp_conn", filetype=FileType.CSV),
+            input_file=File("gs://olist-dw/raw/olist_order_payments_dataset.csv", conn_id="gcp_conn", filetype=FileType.CSV),
             output_table=Table(metadata=Metadata(schema=schema), name="payments", conn_id="gcp_conn")
         )
 
-    load_local_orders_payments
-
-    with TaskGroup(group_id="Orders_items") as orders_items_task_group:
+        load_local_orders_payments
 
         load_local_orders_items = aql.load_file(
             task_id="load_local_orders_items",
-            input_file=File("f{INPUT_PATH}/olist_order_items_dataset.csv", conn_id="gcp_conn", filetype=FileType.CSV),
+            input_file=File("gs://olist-dw/raw/olist_order_items_dataset.csv", conn_id="gcp_conn", filetype=FileType.CSV),
             output_table=Table(metadata=Metadata(schema=schema), name="order_items", conn_id="gcp_conn")
         )
 
-    load_local_orders_items
-
-    with TaskGroup(group_id="Orders_reviews") as orders_reviews_task_group:
+        load_local_orders_items
 
         load_local_orders_reviews = aql.load_file(
             task_id="load_local_orders_reviews",
-            input_file=File("f{INPUT_PATH}/olist_order_reviews_dataset.csv", conn_id="gcp_conn", filetype=FileType.CSV),
+            input_file=File("gs://olist-dw/raw/olist_order_reviews_dataset.csv", conn_id="gcp_conn", filetype=FileType.CSV),
             output_table=Table(metadata=Metadata(schema=schema), name="reviews", conn_id="gcp_conn")
         )
 
-    load_local_orders_reviews
-
-    with TaskGroup(group_id="Products") as products_task_group:
+        load_local_orders_reviews
 
         load_local_products = aql.load_file(
             task_id="load_local_products",
-            input_file=File("f{INPUT_PATH}/olist_products_dataset.csv", conn_id="gcp_conn", filetype=FileType.CSV),
+            input_file=File("gs://olist-dw/raw/olist_products_dataset.csv", conn_id="gcp_conn", filetype=FileType.CSV),
             output_table=Table(metadata=Metadata(schema=schema), name="products", conn_id="gcp_conn")
         )
 
-    load_local_products
-
-    with TaskGroup(group_id="Sellers") as sellers_task_group:
+        load_local_products
 
         load_local_sellers = aql.load_file(
             task_id="load_local_sellers",
-            input_file=File("f{INPUT_PATH}/olist_sellers_dataset.csv", conn_id="gcp_conn", filetype=FileType.CSV),
+            input_file=File("gs://olist-dw/raw/olist_sellers_dataset.csv", conn_id="gcp_conn", filetype=FileType.CSV),
             output_table=Table(metadata=Metadata(schema=schema), name="sellers", conn_id="gcp_conn")
         )
 
-    load_local_sellers
+        load_local_sellers
 
-    init_data_load >> local_files_task_group >> [customers_task_group, 
-                       orders_task_group, 
-                       orders_items_task_group, 
-                       orders_payments_task_group, 
-                       orders_reviews_task_group, 
-                       products_task_group, 
-                       sellers_task_group] >> stop_data_load
+
+        load_local_location = aql.load_file(
+            task_id="load_local_location",
+            input_file=File("gs://olist-dw/raw/olist_geolocation_dataset.csv", conn_id="gcp_conn", filetype=FileType.CSV),
+            output_table=Table(metadata=Metadata(schema=schema), name="location", conn_id="gcp_conn")
+        )
+
+        load_local_location
+
+    with TaskGroup(group_id="Delete_files") as delete_files_task_group:
+
+        delete_gcs_files_task = GoogleCloudStorageDeleteOperator(
+        task_id='delete_gcs_files_task',
+        bucket_name='olist-dw',
+        prefix='raw/',
+        gcp_conn_id='gcp_conn'
+        )
+
+    delete_gcs_files_task
+
+    init_data_load >> local_files_task_group >> load_to_bq_task_group >> delete_files_task_group >> stop_data_load
 
 
 dag = load_local_files()
