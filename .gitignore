@@ -11,4 +11,4 @@ airflow.cfg
 airflow.db
 include/raw_data/
 include/gcp/
-include/soda/configuration.yml
+include/soda/
