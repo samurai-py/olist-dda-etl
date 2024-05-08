@@ -1,4 +1,14 @@
 -- Pedidos não enviados
-select count(id_pedido) as pedido
-from orders
-where status_pedido = 'aprovado' or status_pedido = 'fatura_emitida'
+-- Arquivo: models/orders_not_shipped.sql
+
+{{ config(
+    materialized='table',
+    file_format='delta'
+) }}
+
+SELECT
+    COUNT(id_pedido) AS pedido_nao_enviado
+FROM
+    {{ source('dev', 'orders') }}
+WHERE
+    status_pedido = 'aprovado' OR status_pedido = 'fatura_emitida';

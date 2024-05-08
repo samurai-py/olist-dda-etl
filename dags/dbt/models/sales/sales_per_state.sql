@@ -1,7 +1,26 @@
 
 --Vendas por Estado
-SELECT UF, SUM(valor_pagamento) as valor_vendas FROM customers as c
-LEFT JOIN orders as o on o.id_cliente = c.id_cliente
-LEFT JOIN payments as p on p.id_pedido = o.id_pedido
-GROUP BY UF
-ORDER BY valor_vendas DESC;
+-- Arquivo: models/sales_per_product.sql
+
+{{ config(
+    materialized='table',
+    file_format='delta'
+) }}
+
+SELECT
+    c.UF,
+    SUM(p.valor_pagamento) AS valor_vendas
+FROM
+    {{ source('dev', 'customers') }} AS c
+LEFT JOIN
+    {{ source('dev', 'orders') }} AS o
+ON
+    o.id_cliente = c.id_cliente
+LEFT JOIN
+    {{ source('dev', 'payments') }} AS p
+ON
+    p.id_pedido = o.id_pedido
+GROUP BY
+    c.UF
+ORDER BY
+    valor_vendas DESC;
