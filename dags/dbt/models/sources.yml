@@ -1,0 +1,13 @@
+version: 2
+
+sources:
+  - name: dev
+    tables:
+      - name: customers
+      - name: orders
+      - name: order_items
+      - name: products
+      - name: payments
+      - name: reviews
+      - name: sellers
+      - name: location
