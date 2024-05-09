@@ -2,7 +2,7 @@
 
 ## Overview
 
-pt-br :brazil::
+pt-br :brazil: :
 
 ## Instructions
 
