@@ -27,6 +27,7 @@ dbt_root_path = Path(os.getenv("DBT_ROOT_PATH", default_dbt_root_path))
     schedule_interval=None,
     max_active_runs=1,
     default_args=default_args,
+    catchup=False,
     tags=['dev', 'dbt', 'databricks', 'cosmos']
 )
 
@@ -41,7 +42,7 @@ def create_dbt_models():
         profile_mapping=DatabricksTokenProfileMapping(
             conn_id="databricks_conn",
             profile_args={
-                "schema": "default"
+                "schema": "dev"
             }
         )
     )
