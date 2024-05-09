@@ -2,7 +2,13 @@
 
 ## Overview
 
-pt-br :brazil: :
+pt-br :brazil::
+
+Esse projeto faz parte de um teste técnico definido pela bemol
+
+### Documentação
+
+A documentação final dos modelos dbt pode ser acessada [aqui](https://samurai-py.github.io/olist-dda-etl/#!/overview)
 
 ## Instructions
 
