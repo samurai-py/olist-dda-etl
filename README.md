@@ -41,6 +41,13 @@ Install the required libraries for the project to develop the DAGs locally
 ```shell
 pip install apache-airflow
 pip install astro-sdk-python
-pip install bt-databricks
+pip install dbt-databricks
 pip install astronomer-cosmos
+```
+
+### 5) Generate dbt docs for database and views
+Execute these commands in dags/dbt
+```shell
+dbt generate docs
+dbt docs serve --port 4041
 ```
