@@ -3,7 +3,8 @@
 
 {{ config(
     materialized='table',
-    file_format='delta'
+    file_format='delta',
+    schema='cs'
 ) }}
 
 WITH data_limite AS (
