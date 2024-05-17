@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from airflow.decorators import dag
 from airflow.utils.task_group import TaskGroup
