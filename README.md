@@ -214,4 +214,6 @@ O modelo de ```CS``` vem com o objetivo de trazer a informação de quais client
 
 ### Conclusão
 
+Se quiser conhecer outro projeto meu usando airflow e dbt, pode conferir esse [documento](https://github.com/samurai-py/zebrinha-azul-dash-data-app/blob/main/assets/zebra.md).
+
 É isso! :pray:
